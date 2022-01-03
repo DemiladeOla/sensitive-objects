@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arduino-To-NodeJS Application</title>
+    <script src="https://cdn.socket.io/4.4.0/socket.io.min.js" integrity="sha384-1fOn6VtTq3PWwfsOrk45LnYcGosJwzMHv+Xh/Jx5303FVOXzEnw0EpLv30mtjmlj" crossorigin="anonymous"></script>
+</head>
+<body>
+    <h1>Welcome Sir/Madam,</h1>
+    <h2 id="state">State: Inactive</h2>
+    <div id="frame">
+        
+    </div>
+    <script>
+        let socket = io();
+        let previous = 1;
+        let trackNum = 0;
+        let player = document.getElementById("frame");
+        let type = "ambience";
+        let songList = {
+            ambience: '<iframe width="560" height="315" src="https://www.youtube.com/embed/sjkrrmBnpGE?autoplay=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>',
+            chill: '<iframe width="560" height="315" src="https://www.youtube.com/embed/PTHmZkjROU8?autoplay=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>',
+            sleep: '<iframe width="560" height="315" src="https://www.youtube.com/embed/1ZYbU82GVz4?autoplay=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>',
+            nothing: ""
+        };
+        player.innerHTML = songList[type];
+        socket.on("data", function (data) {
+            if(player) {
+                console.log(data);
+                let str = data;
+                str = str.trim().replace(" ", "").split(":");
+                let state = Number(str[3]);
+                let distance = Number(str[1]);
+                if(state === 4) {
+                    document.getElementById("state").innerHTML = `State: Sleeping <br />Distance: ${distance}cm`;
+                    type = "nothing";
+                } else if(state === 3) {
+                    document.getElementById("state").innerHTML = `State: Active (Playing song) <br />Distance: ${distance}cm`;
+                    type = "sleep";
+                } else if(state === 2) {
+                    document.getElementById("state").innerHTML = `State: Person detected <br />Distance: ${distance}cm`;
+                    type = "chill";
+                } else {
+                    document.getElementById("state").innerHTML = `State: Inactive <br />Distance: ${distance}cm`;
+                    type = "ambience";
+                }
+                if(!(state === previous)) {
+                    player.innerHTML = songList[type];
+                    console.log(state);
+                }
+                previous = state;
+            }
+        });
+    </script>
+</body>
+</html>
